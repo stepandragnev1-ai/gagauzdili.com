@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гагауз Диль — Язык живёт, пока его помнят</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --bg:#0D0A05;--surface:#161009;--surface2:#1e160a;
+  --clay:#C96B3F;--clay-dim:rgba(201,107,63,0.1);
+  --wheat:#E8D5A3;--cream:#F0E8D0;--muted:#6B5F4A;
+  --gold:#C9961A;--sage:#4A7C59;--border:rgba(201,107,63,0.15);
+  --red:rgba(200,70,70,0.15);--red-full:#c84646;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--wheat);font-family:'Jost',sans-serif;font-weight:300;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.5;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 32px;background:rgba(13,10,5,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--cream);letter-spacing:0.04em;cursor:pointer;}
+.nav-logo span{color:var(--clay);font-style:italic;}
+.nav-links{display:flex;gap:22px;list-style:none;}
+.nav-links a{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--clay);}
+.nav-burger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+.nav-burger span{width:22px;height:1px;background:var(--wheat);display:block;}
+@media(max-width:700px){
+  .nav-links{display:none;position:fixed;inset:0;top:60px;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:28px;}
+  .nav-links.open{display:flex;}
+  .nav-burger{display:flex;}
+}
+
+section{min-height:100vh;padding:100px 24px 80px;}
+.container{max-width:1100px;margin:0 auto;}
+
+#hero{display:flex;align-items:center;justify-content:center;text-align:center;padding:0 24px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(201,107,63,0.06) 0%,transparent 70%);pointer-events:none;}
+.hero-badge{display:inline-block;font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:var(--clay);border:1px solid var(--clay);padding:6px 18px;margin-bottom:28px;}
+h1.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,9vw,6.5rem);font-weight:300;line-height:1.05;color:var(--cream);}
+h1.hero-title em{font-style:italic;color:var(--gold);}
+.hero-sub{margin-top:20px;font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin-left:auto;margin-right:auto;}
+.hero-actions{margin-top:40px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+.btn-primary{background:var(--clay);color:#fff;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;text-decoration:none;font-family:'Jost',sans-serif;transition:opacity 0.2s;}
+.btn-primary:hover{opacity:0.85;}
+.btn-outline{border:1px solid var(--border);color:var(--muted);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;padding:14px 32px;text-decoration:none;font-family:'Jost',sans-serif;transition:all 0.2s;}
+.btn-outline:hover{border-color:var(--clay);color:var(--clay);}
+.hero-scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.hero-scroll::after{content:'';width:1px;height:40px;background:linear-gradient(var(--clay),transparent);}
+.hero-stat{display:flex;justify-content:center;gap:48px;margin-top:52px;flex-wrap:wrap;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:300;color:var(--wheat);}
+.stat-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+
+.section-header{text-align:center;margin-bottom:48px;}
+.section-badge{display:inline-block;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--clay);border:1px solid var(--border);padding:5px 16px;margin-bottom:18px;}
+h2.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.6rem);font-weight:300;color:var(--cream);line-height:1.1;}
+h2.section-title em{font-style:italic;color:var(--gold);}
+.section-desc{margin-top:14px;font-size:13px;color:var(--muted);line-height:1.7;max-width:480px;margin-left:auto;margin-right:auto;}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px;}
+.filter-btn{background:transparent;border:1px solid rgba(201,107,63,0.25);color:var(--muted);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:7px 18px;cursor:pointer;transition:all 0.2s;}
+.filter-btn:hover,.filter-btn.active{background:var(--clay);border-color:var(--clay);color:#fff;}
+
+.words-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:2px;}
+.word-card{background:var(--surface);border:1px solid var(--border);padding:26px 22px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;}
+.word-card::before{content:'';position:absolute;left:0;top:0;width:3px;height:0;background:var(--clay);transition:height 0.3s;}
+.word-card:hover{background:rgba(201,107,63,0.06);border-color:rgba(201,107,63,0.25);}
+.word-card:hover::before,.word-card.open::before{height:100%;}
+.word-num{font-size:10px;color:var(--clay);letter-spacing:0.18em;font-weight:500;margin-bottom:10px;}
+.word-main{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--wheat);line-height:1;margin-bottom:4px;}
+.word-translit{font-size:11px;color:#5a5040;letter-spacing:0.08em;font-style:italic;margin-bottom:10px;}
+.word-ru{font-size:13px;color:var(--cream);font-weight:400;margin-bottom:8px;}
+.word-tag{display:inline-block;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--sage);background:rgba(74,124,89,0.1);padding:3px 9px;}
+.word-toggle{position:absolute;right:14px;top:14px;width:22px;height:22px;border:1px solid var(--border);color:var(--clay);font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.word-card:hover .word-toggle{background:var(--clay);color:#fff;border-color:var(--clay);}
+.word-card.open .word-toggle{transform:rotate(45deg);}
+.word-meaning{font-size:12px;color:var(--muted);line-height:1.65;display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,213,163,0.08);}
+.word-card.open .word-meaning{display:block;}
+.stats-bar{text-align:center;font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;}
+.stats-bar span{color:var(--clay);}
+
+/* ── VOCAB ── */
+#vocab{background:var(--surface);min-height:auto;padding:100px 24px 80px;}
+
+/* Edit mode bar */
+.edit-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;padding:14px 18px;border:1px solid var(--border);background:var(--bg);}
+.edit-bar-left{font-size:12px;color:var(--muted);letter-spacing:0.05em;}
+.edit-bar-left strong{color:var(--wheat);font-weight:500;}
+.edit-bar-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-edit{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-family:'Jost',sans-serif;padding:8px 18px;cursor:pointer;transition:all 0.2s;border:1px solid var(--clay);background:transparent;color:var(--clay);}
+.btn-edit:hover{background:var(--clay);color:#fff;}
+.btn-edit.active{background:var(--clay);color:#fff;}
+.btn-save{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-family:'Jost',sans-serif;padding:8px 18px;cursor:pointer;border:1px solid var(--sage);background:transparent;color:var(--sage);transition:all 0.2s;}
+.btn-save:hover{background:var(--sage);color:#fff;}
+.btn-reset-all{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;font-family:'Jost',sans-serif;padding:8px 18px;cursor:pointer;border:1px solid rgba(200,70,70,0.4);background:transparent;color:var(--red-full);transition:all 0.2s;opacity:0.7;}
+.btn-reset-all:hover{opacity:1;background:var(--red);border-color:var(--red-full);}
+
+.saved-toast{font-size:11px;color:var(--sage);letter-spacing:0.1em;padding:6px 14px;border:1px solid var(--sage);background:rgba(74,124,89,0.1);animation:fadeUp 0.3s ease;}
+
+.vocab-mode-toggle{display:flex;justify-content:center;gap:0;margin-bottom:36px;}
+.mode-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;padding:10px 28px;cursor:pointer;transition:all 0.2s;}
+.mode-btn:first-child{border-right:none;}
+.mode-btn.active{background:var(--clay);border-color:var(--clay);color:#fff;}
+
+/* Vocab grid — view mode */
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px;}
+.vocab-item{background:var(--bg);border:1px solid var(--border);padding:22px 18px;transition:all 0.2s;position:relative;}
+.vocab-item:hover{border-color:rgba(201,107,63,0.3);background:var(--clay-dim);}
+.vocab-ru{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.vocab-gag{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:300;color:var(--wheat);line-height:1.1;margin-bottom:6px;}
+.vocab-alt{font-size:11px;color:#5a5040;font-style:italic;}
+.vocab-cat{display:inline-block;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);background:rgba(74,124,89,0.1);padding:2px 8px;margin-top:8px;}
+
+/* Vocab grid — EDIT mode */
+.vocab-item.editing{border-color:var(--clay);background:rgba(201,107,63,0.05);cursor:default;}
+.vocab-item.editing:hover{background:rgba(201,107,63,0.08);}
+.edit-field-label{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--clay);margin-bottom:5px;margin-top:12px;}
+.edit-field-label:first-child{margin-top:0;}
+.edit-input{width:100%;background:var(--surface2);border:1px solid rgba(201,107,63,0.3);color:var(--cream);padding:7px 10px;font-size:13px;font-family:'Jost',sans-serif;transition:border-color 0.2s;}
+.edit-input:focus{outline:none;border-color:var(--clay);}
+.edit-input.gag-input{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-style:italic;}
+.edit-indicator{position:absolute;top:10px;right:10px;width:6px;height:6px;background:var(--clay);border-radius:50%;}
+
+/* Flashcards */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:28px;}
+.cat-tab{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 16px;cursor:pointer;transition:all 0.2s;}
+.cat-tab.active{background:var(--clay);border-color:var(--clay);color:#fff;}
+
+.flashcard-section{max-width:460px;margin:0 auto;}
+.flashcard-progress{text-align:center;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:22px;}
+.flashcard-progress span{color:var(--clay);}
+.flip-card{width:100%;height:240px;perspective:1000px;cursor:pointer;margin-bottom:24px;}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d;}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-front,.flip-back{position:absolute;inset:0;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);padding:28px;}
+.flip-front{background:var(--bg);}
+.flip-back{background:var(--clay-dim);border-color:var(--clay);transform:rotateY(180deg);}
+.flip-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.flip-word{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,8vw,3rem);font-weight:300;color:var(--cream);text-align:center;line-height:1.1;}
+.flip-sub{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;text-align:center;}
+.flip-hint{font-size:10px;color:#3a3028;letter-spacing:0.1em;margin-top:18px;}
+.card-nav{display:flex;align-items:center;justify-content:center;gap:14px;}
+.nav-arrow{background:transparent;border:1px solid var(--border);color:var(--wheat);width:42px;height:42px;font-size:18px;cursor:pointer;transition:all 0.2s;font-family:'Jost',sans-serif;}
+.nav-arrow:hover:not(:disabled){border-color:var(--clay);color:var(--clay);}
+.nav-arrow:disabled{opacity:0.2;cursor:not-allowed;}
+.nav-reset{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:transparent;border:none;cursor:pointer;font-family:'Jost',sans-serif;transition:color 0.2s;}
+.nav-reset:hover{color:var(--clay);}
+
+/* GENERATOR */
+#generator{background:var(--bg);}
+.gen-wrap{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+@media(max-width:768px){.gen-wrap{grid-template-columns:1fr;}}
+.gen-panel{background:var(--surface);padding:32px 24px;}
+.gen-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#4a3f2e;font-weight:500;margin-bottom:10px;display:block;}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:24px;}
+.type-btn{background:transparent;border:1px solid var(--border);color:var(--wheat);padding:12px 10px;text-align:left;cursor:pointer;transition:all 0.2s;font-family:'Jost',sans-serif;}
+.type-btn.active{background:var(--clay);border-color:var(--clay);color:#fff;}
+.type-icon{font-size:15px;margin-bottom:4px;}
+.type-name{font-size:12px;font-weight:500;}
+.type-desc{font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.word-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:20px;}
+.word-pill{font-size:11px;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'Cormorant Garamond',serif;font-style:italic;transition:all 0.18s;}
+.word-pill.active{border-color:var(--clay);background:var(--clay-dim);color:var(--clay);}
+.gen-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--cream);padding:11px 14px;font-size:13px;font-family:'Jost',sans-serif;margin-bottom:8px;}
+.gen-input:focus{outline:none;border-color:var(--clay);}
+.api-note{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:18px;padding:10px 12px;background:rgba(201,107,63,0.05);border-left:2px solid var(--clay);}
+.api-note a{color:var(--clay);}
+.gen-btn{width:100%;padding:15px;background:var(--clay);border:none;color:#fff;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-family:'Jost',sans-serif;font-weight:500;cursor:pointer;transition:opacity 0.2s;}
+.gen-btn:hover{opacity:0.88;}
+.gen-btn:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
+.gen-result-panel{background:var(--surface);padding:32px 24px;display:flex;flex-direction:column;}
+.result-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);}
+.result-placeholder-icon{font-size:2.5rem;margin-bottom:16px;opacity:0.3;}
+.result-word{font-family:'Cormorant Garamond',serif;font-size:2rem;font-style:italic;color:var(--cream);margin-bottom:4px;}
+.result-type-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--clay);margin-bottom:16px;}
+.result-text{font-size:14px;line-height:1.85;color:var(--cream);flex:1;white-space:pre-wrap;}
+.result-text.poem{font-family:'Cormorant Garamond',serif;font-size:15px;}
+.result-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.result-copy{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);background:transparent;padding:8px 16px;cursor:pointer;font-family:'Jost',sans-serif;transition:all 0.2s;}
+.result-copy:hover{border-color:var(--clay);color:var(--clay);}
+.result-regen{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);background:transparent;border:none;cursor:pointer;font-family:'Jost',sans-serif;transition:color 0.2s;padding:8px 0;}
+.result-regen:hover{color:var(--clay);}
+.spinner{width:30px;height:30px;border:2px solid var(--border);border-top:2px solid var(--clay);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
+
+#about{background:var(--surface);}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+@media(max-width:768px){.about-grid{grid-template-columns:1fr;gap:36px;}}
+.about-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.4rem,4vw,2.2rem);font-weight:300;font-style:italic;color:var(--cream);line-height:1.4;border-left:3px solid var(--clay);padding-left:24px;}
+.about-text{font-size:14px;line-height:1.85;color:var(--muted);}
+.about-text p+p{margin-top:16px;}
+.about-highlight{color:var(--wheat);}
+footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 24px;text-align:center;}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;color:var(--wheat);margin-bottom:10px;}
+.footer-logo em{font-style:italic;color:var(--clay);}
+.footer-sub{font-size:11px;color:var(--muted);letter-spacing:0.08em;line-height:1.8;}
+.footer-divider{width:40px;height:1px;background:var(--clay);margin:16px auto;}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp 0.4s ease both;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" onclick="location.href='#hero'">Гагауз <span>Диль</span></div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#hero" class="active">Главная</a></li>
+    <li><a href="#words">50 слов</a></li>
+    <li><a href="#vocab">Словарь</a></li>
+    <li><a href="#generator">Генератор</a></li>
+    <li><a href="#about">О проекте</a></li>
+  </ul>
+  <div class="nav-burger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div style="position:relative;z-index:1;">
+    <div class="hero-badge">Gagauz · Гагаузский язык</div>
+    <h1 class="hero-title">Язык живёт,<br>пока его <em>помнят</em></h1>
+    <p class="hero-sub">Образовательная платформа для молодёжи и диаспоры.<br>50 красивых слов · Словарь семьи · AI-генератор контента.</p>
+    <div class="hero-actions">
+      <a href="#words" class="btn-primary">Начать учить</a>
+      <a href="#vocab" class="btn-outline">Словарь семьи</a>
+    </div>
+    <div class="hero-stat">
+      <div><div class="stat-num">50</div><div class="stat-label">Красивых слов</div></div>
+      <div><div class="stat-num">~150к</div><div class="stat-label">Носителей языка</div></div>
+      <div><div class="stat-num">5</div><div class="stat-label">Форматов контента</div></div>
+    </div>
+  </div>
+  <div class="hero-scroll">Листай</div>
+</section>
+
+<section id="words">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Словарь · Красота языка</div>
+      <h2 class="section-title">Топ-50 <em>красивых</em><br>гагаузских слов</h2>
+      <p class="section-desc">Нажми на карточку, чтобы узнать культурный смысл слова</p>
+    </div>
+    <div class="filters" id="wordFilters">
+      <button class="filter-btn active" data-filter="all">Все</button>
+      <button class="filter-btn" data-filter="природа">Природа</button>
+      <button class="filter-btn" data-filter="семья">Семья</button>
+      <button class="filter-btn" data-filter="душа">Душа</button>
+      <button class="filter-btn" data-filter="мудрость">Мудрость</button>
+      <button class="filter-btn" data-filter="красота">Красота</button>
+      <button class="filter-btn" data-filter="жизнь">Жизнь</button>
+    </div>
+    <div class="stats-bar">Показано <span id="wordCount">50</span> из 50 слов</div>
+    <div class="words-grid" id="wordsGrid"></div>
+  </div>
+</section>
+
+<section id="vocab">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Словарь · Разговорник</div>
+      <h2 class="section-title"><em>Семья</em><br>на гагаузском</h2>
+      <p class="section-desc">Самые важные слова — те, что называют родных.</p>
+    </div>
+    <div id="vocabRoot"></div>
+  </div>
+</section>
+
+<section id="generator">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">AI · Генератор</div>
+      <h2 class="section-title">Создай <em>контент</em><br>о гагаузской культуре</h2>
+      <p class="section-desc">Shorts, поэзия, посты для диаспоры — выбери формат и тему</p>
+    </div>
+    <div id="generatorRoot"></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div>
+        <div class="section-badge" style="margin-bottom:20px;">О проекте</div>
+        <div class="about-quote">«Гагауз диль — ана диль.<br>Мать-язык не умирает,<br>пока звучит хоть одно слово.»</div>
+      </div>
+      <div class="about-text">
+        <p>Гагаузский язык — тюркский язык с богатейшей историей, на котором говорят около 150 000 человек в Молдове, Украине и диаспоре по всему миру.</p>
+        <p>Этот проект создан <span class="about-highlight">для молодёжи и диаспоры</span> — тех, кто хочет сохранить связь с корнями в доступном современном формате.</p>
+        <p>Здесь каждое слово — это не просто перевод, а <span class="about-highlight">история, образ, часть идентичности</span> народа с тысячелетней культурой.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Гагауз <em>Диль</em></div>
+  <div class="footer-divider"></div>
+  <div class="footer-sub">Гагаузский язык · Тюркская языковая семья · Молдова, Украина, диаспора<br>Сделано с любовью к родному языку</div>
+</footer>
+
+<script>
+// NAV scroll highlight
+document.querySelectorAll('.nav-links a').forEach(a=>{
+  a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open'));
+});
+window.addEventListener('scroll',()=>{
+  const ids=['hero','words','vocab','generator','about'];
+  let cur='hero';
+  ids.forEach(id=>{const el=document.getElementById(id);if(el&&window.scrollY>=el.offsetTop-130)cur=id;});
+  document.querySelectorAll('.nav-links a').forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+cur)l.classList.add('active');});
+});
+
+// WORDS DATA & RENDER
+const words=[
+  {n:1,word:"Аана",tr:"aana",ru:"Мать",tag:"семья",meaning:"Одно из самых тёплых слов в любом языке. В гагаузской культуре мать — центр семьи и хранительница традиций."},
+  {n:2,word:"Денниз",tr:"denniz",ru:"Море",tag:"природа",meaning:"Море для гагаузов — символ бесконечности и тоски по родине."},
+  {n:3,word:"Гёзел",tr:"gözel",ru:"Красивый",tag:"красота",meaning:"Высшая похвала в гагаузском. «Гёзел» — то, что радует душу."},
+  {n:4,word:"Севги",tr:"sevgi",ru:"Любовь",tag:"душа",meaning:"Любовь во всех проявлениях — к родителям, к земле, к народу. Без севги нет жизни."},
+  {n:5,word:"Йулдуз",tr:"yulduz",ru:"Звезда",tag:"природа",meaning:"Звёзды в гагаузском фольклоре связаны с душами предков."},
+  {n:6,word:"Топрак",tr:"toprak",ru:"Земля",tag:"природа",meaning:"Земля — основа гагаузского мировоззрения. Топрак — это дом, прошлое и будущее."},
+  {n:7,word:"Гюн",tr:"gün",ru:"День / Солнце",tag:"природа",meaning:"Слово двойного смысла: «день» и «солнце». Каждый новый день — подарок света."},
+  {n:8,word:"Умут",tr:"umut",ru:"Надежда",tag:"душа",meaning:"«Умутсуз кишийе ёл ёк» — без надежды нет пути."},
+  {n:9,word:"Йол",tr:"yol",ru:"Дорога / Путь",tag:"жизнь",meaning:"Путь в буквальном и переносном смысле. Судьба, выбор, жизненная дорога."},
+  {n:10,word:"Сес",tr:"ses",ru:"Голос / Звук",tag:"красота",meaning:"В гагаузской традиции голос — это душа."},
+  {n:11,word:"Аклы",tr:"aklı",ru:"Разум / Ум",tag:"мудрость",meaning:"«Аклы олан — бай» — у кого есть ум, тот богат."},
+  {n:12,word:"Баба",tr:"baba",ru:"Отец / Дед",tag:"семья",meaning:"Баба — и «папа», и «дед». Образ мудрого главы рода."},
+  {n:13,word:"Дост",tr:"dost",ru:"Друг",tag:"душа",meaning:"«Дост» — тот, кто не уйдёт в трудную минуту. О настоящем братстве."},
+  {n:14,word:"Якы",tr:"yakı",ru:"Близкий / Родной",tag:"семья",meaning:"Тот, кто близко к сердцу. Те, за кого отдашь всё."},
+  {n:15,word:"Гёкйюзю",tr:"gökyüzü",ru:"Небо",tag:"природа",meaning:"Буквально: «лицо неба». Поднять взгляд — вспомнить о вечном."},
+  {n:16,word:"Куш",tr:"kuş",ru:"Птица",tag:"природа",meaning:"Птица — символ свободы. В фольклоре птицы приносят новости из далёкого края."},
+  {n:17,word:"Хаир",tr:"hayır",ru:"Добро / Благо",tag:"мудрость",meaning:"«Хаир ишле» — делай добро. Слово-призыв к лучшей версии себя."},
+  {n:18,word:"Эмнийет",tr:"emniyet",ru:"Доверие",tag:"душа",meaning:"Чувство защищённости. Дом, где есть эмнийет — настоящий дом."},
+  {n:19,word:"Кайгы",tr:"kaygı",ru:"Печаль / Забота",tag:"душа",meaning:"Тихая забота о близких, переходящая в тоску."},
+  {n:20,word:"Берекет",tr:"bereket",ru:"Благодать",tag:"жизнь",meaning:"Берекет молдавских полей, берекет материнского стола."},
+  {n:21,word:"Ышык",tr:"ışık",ru:"Свет",tag:"природа",meaning:"Свет знания, свет очага, свет ребёнка в доме."},
+  {n:22,word:"Харман",tr:"harman",ru:"Жатва",tag:"жизнь",meaning:"Время хармана — праздник сельской общины, время единства."},
+  {n:23,word:"Шаркы",tr:"şarkı",ru:"Песня",tag:"красота",meaning:"Песня — душа гагаузского народа."},
+  {n:24,word:"Юрт",tr:"yurt",ru:"Родина",tag:"семья",meaning:"Юрт — земля предков, родная Гагаузия."},
+  {n:25,word:"Сабах",tr:"sabah",ru:"Утро",tag:"природа",meaning:"Каждое утро — новое начало."},
+  {n:26,word:"Акшам",tr:"akşam",ru:"Вечер",tag:"природа",meaning:"Вечер — время семьи. Акшам собирает всех за столом."},
+  {n:27,word:"Ярын",tr:"yarın",ru:"Завтра",tag:"жизнь",meaning:"Завтра — слово надежды. Вера в завтра — основа стойкости."},
+  {n:28,word:"Дуа",tr:"dua",ru:"Молитва",tag:"душа",meaning:"«Дуам сенин ичин» — моя молитва за тебя."},
+  {n:29,word:"Хатыр",tr:"hatır",ru:"Память / Уважение",tag:"мудрость",meaning:"«Хатырын ичин» — ради твоей памяти, ради тебя."},
+  {n:30,word:"Чечек",tr:"çiçek",ru:"Цветок",tag:"красота",meaning:"Имя Чечек дают девочкам. Цветы на вышивках — символ благополучия."},
+  {n:31,word:"Джан",tr:"can",ru:"Душа / Жизнь",tag:"душа",meaning:"«Джаным» — моя душа. Самое нежное слово-обращение."},
+  {n:32,word:"Сёз",tr:"söz",ru:"Слово / Обещание",tag:"мудрость",meaning:"«Сёзюнден дурмак» — держать слово."},
+  {n:33,word:"Кюлю",tr:"külü",ru:"Пепел / След",tag:"жизнь",meaning:"Всё проходит, но след остаётся."},
+  {n:34,word:"Сувур",tr:"suvur",ru:"Ласточка",tag:"природа",meaning:"Ласточка — символ возвращения домой."},
+  {n:35,word:"Йурек",tr:"yürek",ru:"Сердце",tag:"душа",meaning:"«Йуреим аарыйыр» — сердце болит. Самое искреннее признание."},
+  {n:36,word:"Кок",tr:"kök",ru:"Корень",tag:"семья",meaning:"Знать свой кок — значит знать, кто ты есть."},
+  {n:37,word:"Яшлык",tr:"yaşlık",ru:"Молодость",tag:"жизнь",meaning:"Яшлык — время смелости, ошибок и открытий."},
+  {n:38,word:"Бахча",tr:"bahça",ru:"Сад / Огород",tag:"жизнь",meaning:"Бахча — свобода и самодостаточность."},
+  {n:39,word:"Таш",tr:"taş",ru:"Камень",tag:"природа",meaning:"«Таш гиби» — крепкий как камень."},
+  {n:40,word:"Гюлмек",tr:"gülmek",ru:"Смеяться",tag:"жизнь",meaning:"Гюлмек от души — значит быть живым."},
+  {n:41,word:"Кыш",tr:"kış",ru:"Зима",tag:"природа",meaning:"Зима суровая. Но у очага — тепло и сказки."},
+  {n:42,word:"Эски",tr:"eski",ru:"Старый / Давний",tag:"мудрость",meaning:"Эски традиции, эски мудрость — ценность. Уважение к прошлому."},
+  {n:43,word:"Хошланмак",tr:"hoşlanmak",ru:"Радоваться",tag:"красота",meaning:"Позволить себе хошланмак — значит быть живым."},
+  {n:44,word:"Чобан",tr:"çoban",ru:"Пастух",tag:"жизнь",meaning:"Архетипический образ гагаузской жизни."},
+  {n:45,word:"Байрам",tr:"bayram",ru:"Праздник",tag:"жизнь",meaning:"Байрам — еда, песни, смех и слёзы радости."},
+  {n:46,word:"Умур",tr:"umur",ru:"Забота",tag:"мудрость",meaning:"Заботиться — значит жить."},
+  {n:47,word:"Мераклы",tr:"meraklı",ru:"Любопытный",tag:"жизнь",meaning:"Мераклы человек — живой человек."},
+  {n:48,word:"Хошлук",tr:"hoşluk",ru:"Радость",tag:"красота",meaning:"Тихая радость от простых вещей."},
+  {n:49,word:"Гюч",tr:"güç",ru:"Сила",tag:"душа",meaning:"«Гюч вер» — дай силу — так молятся."},
+  {n:50,word:"Шюкюр",tr:"şükür",ru:"Благодарность",tag:"мудрость",meaning:"Тот, кто умеет говорить шюкюр, — по-настоящему богат."},
+];
+function renderWords(data){
+  const g=document.getElementById('wordsGrid');
+  document.getElementById('wordCount').textContent=data.length;
+  g.innerHTML='';
+  data.forEach(w=>{
+    const d=document.createElement('div');
+    d.className='word-card';
+    d.innerHTML=`<div class="word-toggle">+</div><div class="word-num">${String(w.n).padStart(2,'0')}</div><div class="word-main">${w.word}</div><div class="word-translit">${w.tr}</div><div class="word-ru">${w.ru}</div><div class="word-tag">${w.tag}</div><div class="word-meaning">${w.meaning}</div>`;
+    d.addEventListener('click',()=>d.classList.toggle('open'));
+    g.appendChild(d);
+  });
+}
+document.getElementById('wordFilters').addEventListener('click',e=>{
+  if(!e.target.classList.contains('filter-btn'))return;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  const f=e.target.dataset.filter;
+  renderWords(f==='all'?words:words.filter(w=>w.tag===f));
+});
+renderWords(words);
+</script>
+
+<script type="text/babel">
+const {useState,useCallback}=React;
+
+// ── DEFAULT VOCAB DATA ──
+const DEFAULT_WORDS = [
+  {ru:"Мама",       gag:"Ana",         alt:""},
+  {ru:"Папа / Отец",gag:"Boba",        alt:"Baka"},
+  {ru:"Брат",       gag:"Kardaş",      alt:"Batü"},
+  {ru:"Сестра",     gag:"Kızkardaş",   alt:"Kaku"},
+  {ru:"Семья",      gag:"Aylä",        alt:""},
+  {ru:"Дедушка",    gag:"Dädu",        alt:""},
+  {ru:"Бабушка",    gag:"Babu",        alt:"Mali · Büükmamu"},
+  {ru:"Ребёнок",    gag:"Uşak",        alt:""},
+  {ru:"Дети",       gag:"Uşaklar",     alt:""},
+  {ru:"Мальчик",    gag:"Çocuk",       alt:""},
+  {ru:"Девочка",    gag:"Kız",         alt:""},
+  {ru:"Юноша",      gag:"Delikannı",   alt:""},
+];
+const STORAGE_KEY = "gagauz_vocab_family";
+
+function loadWords(){
+  try{
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? JSON.parse(s) : DEFAULT_WORDS.map(w=>({...w}));
+  }catch{return DEFAULT_WORDS.map(w=>({...w}));}
+}
+function saveWords(words){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(words)); }catch{}
+}
+
+function VocabSection(){
+  const [mode, setMode]       = useState("grid");
+  const [editMode, setEditMode] = useState(false);
+  const [words, setWords]     = useState(loadWords);
+  const [draft, setDraft]     = useState(null); // copy while editing
+  const [saved, setSaved]     = useState(false);
+  const [idx, setIdx]         = useState(0);
+  const [flipped, setFlipped] = useState(false);
+
+  const startEdit = () => {
+    setDraft(words.map(w=>({...w})));
+    setEditMode(true);
+  };
+  const cancelEdit = () => { setDraft(null); setEditMode(false); };
+  const saveEdit = () => {
+    setWords(draft);
+    saveWords(draft);
+    setDraft(null);
+    setEditMode(false);
+    setSaved(true);
+    setTimeout(()=>setSaved(false), 2500);
+  };
+  const resetAll = () => {
+    if(!window.confirm("Сбросить все изменения к исходным данным?")) return;
+    const def = DEFAULT_WORDS.map(w=>({...w}));
+    setWords(def);
+    setDraft(null);
+    setEditMode(false);
+    saveWords(def);
+    setSaved(true);
+    setTimeout(()=>setSaved(false), 2000);
+  };
+  const updateDraft = (i, field, val) => {
+    setDraft(d => d.map((w,j)=> j===i ? {...w,[field]:val} : w));
+  };
+
+  const displayWords = editMode ? draft : words;
+
+  const next  = () => { setIdx(i=>Math.min(i+1,words.length-1)); setFlipped(false); };
+  const prev  = () => { setIdx(i=>Math.max(i-1,0)); setFlipped(false); };
+  const reset = () => { setIdx(0); setFlipped(false); };
+
+  return (
+    <div>
+      {/* Edit control bar */}
+      <div className="edit-bar">
+        <div className="edit-bar-left">
+          {editMode
+            ? <><strong>Режим редактирования</strong> — измени любое поле и нажми «Сохранить»</>
+            : <>Словарь семьи · <strong>{words.length} слов</strong> — ты можешь редактировать прямо здесь</>
+          }
+        </div>
+        <div className="edit-bar-actions">
+          {saved && <span className="saved-toast">✓ Сохранено</span>}
+          {!editMode && <button className="btn-edit" onClick={startEdit}>✎ Редактировать</button>}
+          {editMode && <button className="btn-save" onClick={saveEdit}>✓ Сохранить</button>}
+          {editMode && <button className="btn-edit" onClick={cancelEdit}>Отмена</button>}
+          <button className="btn-reset-all" onClick={resetAll}>↺ Сбросить</button>
+        </div>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="vocab-mode-toggle">
+        <button className={`mode-btn ${mode==="grid"?"active":""}`} onClick={()=>setMode("grid")}>Список</button>
+        <button className={`mode-btn ${mode==="cards"?"active":""}`} onClick={()=>{setMode("cards");setFlipped(false);}}>Карточки</button>
+      </div>
+
+      {/* Grid / Edit mode */}
+      {mode==="grid" && (
+        <div className="vocab-grid">
+          {displayWords.map((w,i)=>(
+            <div key={i} className={`vocab-item ${editMode?"editing":""}`}>
+              {editMode && <div className="edit-indicator"/>}
+
+              {editMode ? (
+                <>
+                  <div className="edit-field-label">По-русски</div>
+                  <input className="edit-input" value={w.ru}
+                    onChange={e=>updateDraft(i,"ru",e.target.value)} placeholder="Русское слово"/>
+
+                  <div className="edit-field-label">По-гагаузски</div>
+                  <input className="edit-input gag-input" value={w.gag}
+                    onChange={e=>updateDraft(i,"gag",e.target.value)} placeholder="Gagauz sözü"/>
+
+                  <div className="edit-field-label">Также (доп. вариант)</div>
+                  <input className="edit-input" value={w.alt}
+                    onChange={e=>updateDraft(i,"alt",e.target.value)} placeholder="другой вариант..."/>
+                </>
+              ):(
+                <>
+                  <div className="vocab-ru">{w.ru}</div>
+                  <div className="vocab-gag">{w.gag}</div>
+                  {w.alt && <div className="vocab-alt">также: {w.alt}</div>}
+                  <div className="vocab-cat">Семья</div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Flashcard mode */}
+      {mode==="cards" && (
+        <div className="flashcard-section">
+          <div className="flashcard-progress">
+            Карточка <span>{idx+1}</span> из {words.length}
+          </div>
+          <div className={`flip-card ${flipped?"flipped":""}`} onClick={()=>setFlipped(f=>!f)}>
+            <div className="flip-inner">
+              <div className="flip-front">
+                <div className="flip-label">По-русски</div>
+                <div className="flip-word">{words[idx].ru}</div>
+                <div className="flip-hint">нажми — узнай перевод</div>
+              </div>
+              <div className="flip-back">
+                <div className="flip-label">По-гагаузски</div>
+                <div className="flip-word">{words[idx].gag}</div>
+                {words[idx].alt && <div className="flip-sub">также: {words[idx].alt}</div>}
+              </div>
+            </div>
+          </div>
+          <div className="card-nav">
+            <button className="nav-arrow" onClick={prev} disabled={idx===0}>←</button>
+            <button className="nav-reset" onClick={reset}>сначала</button>
+            <button className="nav-arrow" onClick={next} disabled={idx===words.length-1}>→</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── GENERATOR ──
+const TYPES=[
+  {id:"shorts",icon:"▶",label:"YouTube Shorts",desc:"Скрипт 30–45 сек",buildPrompt:w=>`Напиши скрипт YouTube Shorts (~90 слов) на русском о гагаузском слове/теме: "${w}". Живой монолог для диаспоры. Начни с цепляющего факта. Включи гагаузское слово. Финал — вдохновляющий. Только текст.`},
+  {id:"poem",icon:"✦",label:"Поэзия",desc:"Лирика / стихотворение",buildPrompt:w=>`Напиши лирическое стихотворение (4-6 строф) на русском о гагаузском слове/теме: "${w}". Философская лирика, образы степи, очага, памяти. Включи гагаузское слово. Только текст.`},
+  {id:"post",icon:"◈",label:"Пост диаспоры",desc:"Instagram / Telegram",buildPrompt:w=>`Напиши вдохновляющий пост (150-200 слов) для соцсетей о гагаузском слове/теме: "${w}" для диаспоры. Тёплый тон. Зацепка → смысл → посыл → призыв. Только текст.`},
+  {id:"philosophy",icon:"◉",label:"Философский",desc:"Эссе / монолог",buildPrompt:w=>`Напиши философский монолог (150-200 слов) на русском, вдохновлённый гагаузским словом/темой: "${w}". Голос мудрого человека. Без банальностей. Только текст.`},
+  {id:"edu",icon:"◇",label:"Образовательный",desc:"Факт-карточка",buildPrompt:w=>`Напиши образовательную карточку (~150 слов) о гагаузском слове/теме: "${w}". Перевод, этимология, пример фразы, культурный смысл. Живой текст.`},
+];
+const WORD_LIST=["Аана (мать)","Денниз (море)","Гёзел (красота)","Севги (любовь)","Йулдуз (звезда)","Топрак (земля)","Умут (надежда)","Юрт (родина)","Джан (душа)","Байрам (праздник)","Шюкюр (благодарность)","Дост (друг)","Йурек (сердце)","Яшлык (молодость)","Кок (корень)","Сёз (обещание)","Шаркы (песня)","Берекет (благодать)","Дуа (молитва)","Гюн (солнце)"];
+
+function Generator(){
+  const [type,setType]=useState("shorts");
+  const [word,setWord]=useState("");
+  const [custom,setCustom]=useState("");
+  const [apiKey,setApiKey]=useState("");
+  const [result,setResult]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [copied,setCopied]=useState(false);
+  const [err,setErr]=useState("");
+  const active=word||custom;
+  const ct=TYPES.find(t=>t.id===type);
+  const displayWord=word?word.split(" ")[0]:custom;
+
+  const generate=async()=>{
+    if(!active||!apiKey)return;
+    setLoading(true);setResult("");setErr("");
+    try{
+      const r=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:ct.buildPrompt(active)}]})
+      });
+      const d=await r.json();
+      if(d.error)throw new Error(d.error.message);
+      setResult(d.content?.map(b=>b.text||"").join("")||"");
+    }catch(e){setErr("Ошибка: "+e.message);}
+    finally{setLoading(false);}
+  };
+  const copy=()=>{navigator.clipboard.writeText(result);setCopied(true);setTimeout(()=>setCopied(false),2000);};
+
+  return(
+    <div className="gen-wrap">
+      <div className="gen-panel">
+        <span className="gen-label">Формат контента</span>
+        <div className="type-grid">
+          {TYPES.map(t=>(
+            <button key={t.id} className={`type-btn ${type===t.id?"active":""}`} onClick={()=>setType(t.id)}>
+              <div className="type-icon">{t.icon}</div>
+              <div className="type-name">{t.label}</div>
+              <div className="type-desc">{t.desc}</div>
+            </button>
+          ))}
+        </div>
+        <span className="gen-label">Выбери слово</span>
+        <div className="word-pills">
+          {WORD_LIST.map(w=>(
+            <button key={w} className={`word-pill ${word===w?"active":""}`} onClick={()=>{setWord(word===w?"":w);setCustom("");}}>
+              {w}
+            </button>
+          ))}
+        </div>
+        <span className="gen-label">Или своя тема</span>
+        <input className="gen-input" placeholder="Степь, традиции, любовь к родине..." value={custom} onChange={e=>{setCustom(e.target.value);setWord("");}}/>
+        <span className="gen-label" style={{marginTop:14,display:"block"}}>Anthropic API ключ</span>
+        <input className="gen-input" type="password" placeholder="sk-ant-..." value={apiKey} onChange={e=>setApiKey(e.target.value)}/>
+        <div className="api-note">Ключ нужен для генератора. Получи на <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+        <button className="gen-btn" disabled={loading||!active||!apiKey} onClick={generate}>
+          {loading?"Генерирую...":"Создать · "+ct?.label}
+        </button>
+      </div>
+      <div className="gen-result-panel">
+        {!result&&!loading&&(
+          <div className="result-placeholder">
+            <div className="result-placeholder-icon">✦</div>
+            <div style={{fontSize:13,color:"#6B5F4A",lineHeight:1.7}}>Выбери тему и формат<br/>— здесь появится контент</div>
+          </div>
+        )}
+        {loading&&(
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+            <div className="spinner"/>
+            <div style={{fontSize:13,color:"#6B5F4A",textAlign:"center"}}>
+              Создаю о <em style={{color:"#C96B3F",fontFamily:"Cormorant Garamond,serif"}}>{displayWord}</em>...
+            </div>
+          </div>
+        )}
+        {err&&<div style={{color:"#e08080",fontSize:13,padding:16}}>{err}</div>}
+        {result&&!loading&&(
+          <div className="fade-up" style={{display:"flex",flexDirection:"column",flex:1}}>
+            <div className="result-type-label">{ct?.label} · {ct?.desc}</div>
+            <div className="result-word">{displayWord}</div>
+            <div className={`result-text ${type==="poem"?"poem":""}`}>{result}</div>
+            <div className="result-actions">
+              <button className="result-copy" onClick={copy}>{copied?"✓ Скопировано":"Копировать"}</button>
+              <button className="result-regen" onClick={generate}>↻ Ещё раз</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('vocabRoot')).render(<VocabSection/>);
+ReactDOM.createRoot(document.getElementById('generatorRoot')).render(<Generator/>);
+</script>
+</body>
+</html>
