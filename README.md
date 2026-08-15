@@ -1,0 +1,2 @@
+# gagauzdili.com
+gagauzdili.com
